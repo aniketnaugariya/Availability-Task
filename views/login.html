@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login Page</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+input{
+  width: 100%;
+}
+</style>
+
+</head>
+
+<body style="display: flex;align-items: center;justify-content: center;">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <div style="margin:0 auto ; width:40%; padding:20px" class="card">
+<div class="row">
+  <label class="col-md-3">Email</label>
+  <div class="col md-9">
+    <input type="email" name="email" placeholder="Email" id="email">
+  </div>
+</div>
+<div style="margin: 10px;">
+
+</div>
+<div class="row">
+  <label class="col-md-3">Password</label>
+  <div class="col md-9">
+    <input type="password" name="password" placeholder="Password" id="password">
+  </div>
+</div>
+<div style="margin: 10px;">
+
+</div>   
+    <div class="row" style="justify-content: flex-end;">
+      <button class="btn btn-primary" style="float: right;" onclick="httpRequest()">Login</button>
+      <button class="btn btn-danger" onclick="register()">Register > </button>
+    </div>
+    
+  </div>
+</body>
+
+</html>
+
+<script>
+
+  function httpRequest() {
+    debugger;
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
+    let data = { email: email, password: password };
+
+    const Http = new XMLHttpRequest();
+    const url = 'http://localhost:8081/version1/login';
+    Http.open("POST", url);
+    Http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    //Http.setRequestHeader('Authorization', localStorage.getItem('token')); 
+    Http.send(`email=${email}&password=${password}`);
+
+    Http.onreadystatechange = function () {
+      debugger;
+      console.log(Http.responseText)
+      if (this.readyState == 4 && this.status == 200) {
+        let data = JSON.parse(Http.responseText)
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+        window.location = "http://localhost:8081/addAvailability";
+      }
+    };
+  }
+  function register(){
+    window.location = 'http://localhost:8081/register'
+  }
+</script>
