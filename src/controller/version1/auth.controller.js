@@ -13,11 +13,9 @@ const AuthController = {
 
     signup: async (req, res) => {
         try {
-            let { firstname, lastname, email, password, timezoneOffset } = req.body;
+            let { firstName, lastName, email, password, timezoneOffset } = req.body;
 
-            console.log(req.body);
-
-            // Check validations
+            // --- validations ---------------//
             let AddErrors = new Error(400);
 
             if (!email || !validator.isValidEmail(email)) {
@@ -26,11 +24,11 @@ const AuthController = {
             if (!password || !validator.isValidPassword(password)) {
                 AddErrors.addRequestError('Invalid password.');
             }
-            if (!firstname || !validator.isValidString(firstname)) {
-                AddErrors.addRequestError('Invalid firstname.');
+            if (!firstName || !validator.isValidString(firstName)) {
+                AddErrors.addRequestError('Invalid firstName.');
             }
-            if (!lastname || !validator.isValidString(lastname)) {
-                AddErrors.addRequestError('Invalid lastname.');
+            if (!lastName || !validator.isValidString(lastName)) {
+                AddErrors.addRequestError('Invalid lastName.');
             }
             if (!timezoneOffset) {
                 timezoneOffset = new Date().getTimezoneOffset();
@@ -41,8 +39,6 @@ const AuthController = {
 
 
             email = email.toLowerCase();
-            firstname = firstname.toLowerCase();
-            lastname = lastname.toLowerCase();
 
             const emailRegex = new RegExp(`^${email.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i');
             const findUser = await Users.findOne({ 'email': emailRegex });
@@ -50,6 +46,7 @@ const AuthController = {
             if (findUser && findUser._id && findUser.email) {
                 return res.status(400).json({ success: false, message: 'Email is already registered.' });
             }
+            // ------------------------------------------- //
 
             // Convert pass to hash & salt
             const { encrypted, salt } = JWTHelper.saltPassword(password);
@@ -57,21 +54,24 @@ const AuthController = {
             if (timezoneOffset) {
                 timezoneOffset = parseInt(timezoneOffset);
             }
-            const newUser = new Users();
-            newUser.firstname = firstname;
-            newUser.lastname = lastname;
-            newUser.email = email;
-            newUser.timezoneOffset = timezoneOffset;
-            newUser.password = encrypted;
-            newUser.salt = salt;
-            newUser.userId = ObjectId();
+            const newUser = new Users({
+                firstName,
+                lastName,
+                email,
+                timezoneOffset,
+                password: encrypted,
+                salt,
+                userId : ObjectId()
+            });
+
+            // Save User To DB
             let saveUser = await newUser.save();
-            console.log(saveUser)
 
             if (!saveUser || !saveUser.userId || saveUser.email !== email) {
                 return res.status(400).json({ success: false, error: new TaError(OK).addParamError('Unable to register user.'), message: 'Unable to register user.' });
             }
 
+            // Create token with 100Days of Expiration.
             const token = jwt.sign(
                 { userId: saveUser.id, email: saveUser.email },
                 encryptConfig.secret,
@@ -89,13 +89,10 @@ const AuthController = {
                 message: "success",
                 token,
                 userId: saveUser.userId,
-                //user: saveUser,
                 newUser: true
             });
 
         } catch (error) {
-            console.log('signup error:', error);
-
             res.status(500).json({ success: false, error: error });
         }
     },
@@ -145,14 +142,11 @@ const AuthController = {
                 encryptConfig.secret,
                 { expiresIn: "100d" }
             );
-
             return res.status(200).json({
                 success: true,
                 token,
                 userId: findUser.userId,
             });
-
-            // return res.redirect('/home');
         }
         catch (error) {
             console.log('login error:', error);

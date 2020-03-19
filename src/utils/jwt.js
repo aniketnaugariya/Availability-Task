@@ -13,7 +13,6 @@ const JWT = {
     decryptApiKey: async (req, res, next) => {
         try {
             const { authorization } = req.headers;
-            console.log(authorization);
             if (!authorization || authorization === 'null') {
                 req.currentUser = null;
                 return next();
@@ -78,33 +77,7 @@ const JWT = {
             .digest('hex');
 
         return decrypted;
-    },
-
-    getSystemTimezoneOffset: () => {
-        let timezoneOffset = 0;
-        const tmpDate = new Date();
-        const date = new Date(Date.UTC(tmpDate.getUTCFullYear(), tmpDate.getUTCMonth(), tmpDate.getUTCDate(), tmpDate.getUTCHours(), tmpDate.getUTCMinutes(), tmpDate.getUTCSeconds()));
-        const offset = date.getTimezoneOffset();
-        if (offset > 0) {
-            timezoneOffset = ((offset - 1) * 60000);
-        } else {
-            timezoneOffset = (offset * 60000);
-        }
-        return timezoneOffset;
-    },
-    // for current time
-    userTimeStamp: (userTimezoneOffset) => {
-        let servertimeoffset = new Date().getTimezoneOffset(); // ser offset
-        var utc = Date.now() + (servertimeoffset * 60000); // 300 offset
-        return (utc - ((60 * 1000) * parseInt(userTimezoneOffset)));
-    },
-    // for previous time
-    getuserTimeStamp: (timestamp, userTimezoneOffset) => {
-        let servertimeoffset = new Date(timestamp).getTimezoneOffset(); // ser offset
-        var utc = new Date(timestamp).getTime() + (servertimeoffset * 60000); // 300 offset
-        return (utc - ((60 * 1000) * parseInt(userTimezoneOffset)));
-    },
-
+    }
 };
 
 module.exports = JWT;

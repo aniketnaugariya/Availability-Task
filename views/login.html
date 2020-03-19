@@ -48,7 +48,6 @@ input{
 <script>
 
   function httpRequest() {
-    debugger;
     let email = document.getElementById('email').value;
     let password = document.getElementById('password').value;
     let data = { email: email, password: password };
@@ -61,7 +60,6 @@ input{
     Http.send(`email=${email}&password=${password}`);
 
     Http.onreadystatechange = function () {
-      debugger;
       console.log(Http.responseText)
       if (this.readyState == 4 && this.status == 200) {
         let data = JSON.parse(Http.responseText)

@@ -2,74 +2,82 @@ const mongoose = require('mongoose');
 const Availability = mongoose.model('Availability');
 
 const helper = {
-    availabilityLogic : async (userId)=> {
+    availabilities : async (userId)=> {
+        // Get Availability ------------------//
         let AvailabilityList = await Availability.find({ userId: userId }).sort({ startTime: 1 });
-        let result = AvailabilityList;
+        // -----------------------------------//
+        let AvailabilityListOfUser = AvailabilityList;
         let timeFrame = [];
         if (AvailabilityList.length > 1) {
             timeFrame.push(AvailabilityList.length);
-            result = await helper.iterations(AvailabilityList);
-            timeFrame.push(result.length);
-            while (result.length > 1 && (timeFrame[timeFrame.length - 1] != timeFrame[timeFrame.length - 2])) {
+            // Merge Availability with their startTime and endTime ---//
+            AvailabilityListOfUser = await helper.iterations(AvailabilityList);
+            // -------------------------------------------------------//
+            timeFrame.push(AvailabilityListOfUser.length);
+            // Further Merging of Availabilities ---------------------//
+            while (AvailabilityListOfUser.length > 1 && (timeFrame[timeFrame.length - 1] != timeFrame[timeFrame.length - 2])) {
     
-                result = await helper.iterations(result);
-                timeFrame.push(result.length);
-    
+                AvailabilityListOfUser = await helper.iterations(AvailabilityListOfUser);
+                timeFrame.push(AvailabilityListOfUser.length);
             }
         } else {
-            result = AvailabilityList;
+            AvailabilityListOfUser = AvailabilityList;
         }
-        console.log('result:', result)
-    
-        return result;
+        return AvailabilityListOfUser;
     },
-    iterations : async (data) => {
+
+    iterations : async (list) => {
         let time = []
     
-        for (let i = 0; i < (data.length - 1); i+=1) {
-
-            if (data[i].startTime <= data[i + 1].startTime && data[i].endTime >= data[i + 1].startTime && data[i].endTime >= data[i + 1].endTime) {
-    
- 
-                time.push({ startTime: data[i].startTime, endTime: data[i].endTime });
-    
-                data.splice(i + 1, 1);
-                if ((data.length - 1) == i + 1) { 
-                    time.push({ startTime: data[i + 1].startTime, endTime: data[i + 1].endTime });
+        for (let i = 0; i < (list.length - 1); i+=1) {
+    //if startTime of availability 2nd come under 1st availability time frame(startTime and endTime) and endTime of 2nd availability is less then endTime of 1st availability
+            if (list[i].startTime <= list[i + 1].startTime && list[i].endTime >= list[i + 1].startTime && list[i].endTime >= list[i + 1].endTime) {
+                time.push({ startTime: list[i].startTime, endTime: list[i].endTime });
+                 // remove the 2nd availability from array
+                list.splice(i + 1, 1);
+                //-------------------------------
+                if ((list.length - 1) == i + 1) { 
+                    time.push({ startTime: list[i + 1].startTime, endTime: list[i + 1].endTime });
                     break;
                 }
-                if (data.length <= 2) {
-                    if (data.length < 2 || (data.length - 1 == i)) break;
-                    time.push({ startTime: data[data.length - 1].startTime,  endTime: data[data.length - 1].endTime  })
+                if (list.length <= 2) {
+                    if (list.length < 2 || (list.length - 1 == i)) break;
+                    time.push({ startTime: list[list.length - 1].startTime,  endTime: list[list.length - 1].endTime  })
                 }
-
-            } else if (data[i].startTime <= data[i + 1].startTime && data[i].endTime >= data[i + 1].startTime) {
+            //If startTime of availability 2nd comes under 1st availability time frame(startTime and endTime) and endTime of 2nd availability > endTime of 1st availability
+            } else if (list[i].startTime <= list[i + 1].startTime && list[i].endTime >= list[i + 1].startTime) {
+                
+                time.push({ startTime: list[i].startTime, endTime: list[i + 1].endTime });
     
-                // comming in time frame 
-                time.push({ startTime: data[i].startTime, endTime: data[i + 1].endTime });
-    
-                 // remove the next record from array
-                data.splice(i + 1, 1);
-                if ((data.length - 1) == i + 1) {
-                    time.push({ startTime: data[i + 1].startTime, endTime: data[i + 1].endTime })
+                 // remove the 2nd availability from array
+                list.splice(i + 1, 1);
+                if ((list.length - 1) == i + 1) {
+                    time.push({ startTime: list[i + 1].startTime, endTime: list[i + 1].endTime })
                     break;
                 }
-                if (data.length <= 2) {
-                    if (data.length < 2 || (data.length - 1 == i)) break;
-                    time.push({ startTime: data[data.length - 1].startTime, endTime: data[data.length - 1].endTime })
+                if (list.length <= 2) {
+                    if (list.length < 2 || (list.length - 1 == i)) break;
+                    time.push({ startTime: list[list.length - 1].startTime, endTime: list[list.length - 1].endTime })
                 }
             } else {
-                if (data.length == i + 2) {
-                    time.push({ startTime: data[i].startTime, endTime: data[i].endTime  })
-                    time.push({ startTime: data[i + 1].startTime, endTime: data[i + 1].endTime })
+                if (list.length == i + 2) {
+                    time.push({ startTime: list[i].startTime, endTime: list[i].endTime  })
+                    time.push({ startTime: list[i + 1].startTime, endTime: list[i + 1].endTime })
                 } else {
-                    time.push({ startTime: data[i].startTime, endTime: data[i].endTime  })
+                    time.push({ startTime: list[i].startTime, endTime: list[i].endTime  })
                 }
     
             }
         }
         return time
-    }
+    },
+
+// for previous time
+    getUserPreviousTime: (timestamp, userTimezoneOffset) => {
+        let serverTimeOffset = new Date(timestamp).getTimezoneOffset(); // ser offset
+        var utc = new Date(timestamp).getTime() + (serverTimeOffset * 60000); // 300 offset
+        return (utc - ((60 * 1000) * parseInt(userTimezoneOffset)));
+    },
 }
 
 module.exports = helper;

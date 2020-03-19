@@ -46,7 +46,6 @@
 <script>
 
   function addAvailability() {
-    debugger;
     let startTime = new Date(document.getElementById('startTime').value).getTime();
     let endTime = new Date(document.getElementById('endTime').value).getTime();
 
@@ -58,8 +57,6 @@
     Http.send(`startTime=${startTime}&endTime=${endTime}`);
 
     Http.onreadystatechange = function () {
-      debugger;
-      console.log(Http.responseText)
       if (this.readyState == 4 && this.status == 200) {
         let data = JSON.parse(Http.responseText)
         let userId = localStorage.getItem('userId')

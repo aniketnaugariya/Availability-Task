@@ -25,7 +25,7 @@ const Validator = {
     isValidPassword(password) {
         // Check if the value is greater or equal to 5 characters
         return (password.length >= 6);
-    },
+    }, 
 }
 
 module.exports = Validator;

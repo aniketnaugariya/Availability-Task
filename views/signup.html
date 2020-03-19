@@ -64,7 +64,6 @@ input{
 <script>
 
     function signup() {
-        debugger;
         let firstName = document.getElementById('firstName').value;
         let lastName = document.getElementById('lastName').value;
         let email = document.getElementById('email').value;
@@ -76,10 +75,9 @@ input{
         Http.open("POST", url);
         Http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         //Http.setRequestHeader('Authorization', localStorage.getItem('token')); 
-        Http.send(`firstname=${firstName}&lastname=${lastName}&email=${email}&password=${pass}&timezoneOffset=${timeOffset}`);
+        Http.send(`firstName=${firstName}&lastName=${lastName}&email=${email}&password=${pass}&timezoneOffset=${timeOffset}`);
 
         Http.onreadystatechange = function () {
-            debugger;
             console.log(Http.responseText)
             if (this.readyState == 4 && this.status == 200) {
                 let data = JSON.parse(Http.responseText)
@@ -96,7 +94,6 @@ input{
     }
 
     function getAvailability() {
-        debugger;
         let timeOffset = new Date().getTimezoneOffset();
         let userId = localStorage.getItem('userId');
         window.location = `http://localhost:8081/version1/getAvailability?userId=${userId}&timeOffset=${timeOffset}`;
